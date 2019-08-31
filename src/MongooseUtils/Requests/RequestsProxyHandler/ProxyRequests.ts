@@ -187,24 +187,17 @@ export class ProxyRequests {
    * @returns {Promise<IndexableDocument[]>}
    * @private
   */
-  private quantifiedSpecialRequests(
+  private async quantifiedSpecialRequests(
     modelName: string,
     method: string,
     specials: any,
     args: any[] = []
   ): Promise<IndexableDocument[]> {
-    return new Promise((resolve, reject) => {
-      // this.models = an object containing all the models (basically, a model is what define what can contains, how is structured, each document of the collection)
-      // find request, with a limitation
-      this.models[modelName].find(...args).limit(specials.methodExtensions.quantity.value)
-        // all founds documents
-        .then((docs: any) => {
-          this.requestOnManyDocs(docs, method, args)
-            .then(resolve)
-            .catch(reject);
-        })
-        .catch(reject);
-    });
+    // this.models = an object containing all the models (basically, a model is what define what can contains, how is structured, each document of the collection)
+    // find request, with a limitation
+    const documents = await this.models[modelName].find(...args).limit(specials.methodExtensions.quantity.value);
+      // all founds documents
+    return this.requestOnManyDocs(documents, method, args);
   }
 
   /**
@@ -215,40 +208,30 @@ export class ProxyRequests {
    * @returns {Promise<IndexableDocument[]>}
    * @private
    */
-  private requestOnManyDocs(
+  private async requestOnManyDocs(
     documents: IndexableDocument[],
     request: string,
     args: any[]
   ): Promise<IndexableDocument[]> {
-    return new Promise((resolve, reject) => {
-      let requestsDone = 0;
-      let documentsAfterRequest: IndexableDocument[] = [];
-      const documentsNumber = documents.length;
-      //args.shift();
+    let documentsAfterRequest: IndexableDocument[] = [];
+    const documentsNumber = documents.length;
+    //args.shift();
 
-      // "update" unlike "updateOne" is deprecated
-      // "replace" unlike "replaceOne" doesn't exists
-      if (request === 'update' || request === 'replace') request += 'One';
+    // "update" unlike "updateOne" is deprecated
+    // "replace" unlike "replaceOne" doesn't exists
+    if (request === 'update' || request === 'replace') {
+      request += 'One';
+    }
 
-      for (let i = 0; i < documentsNumber; i++) {
-        const document = documents[i];
-        // do the request on the documents individually
-        document[request](...args)
-          // if the number of requests done and the number of number are equals, then everything is good we can resolve the promise
-          .then((doc: IndexableDocument) => {
-            documentsAfterRequest.push(doc);
+    for (let i = 0; i < documentsNumber; i++) {
+      const document = documents[i];
+      // do the request on the documents individually
+      const doc: IndexableDocument = await document[request](...args);
 
-            if (++requestsDone === documentsNumber) {
-              resolve(documentsAfterRequest);
-            }
-          })
-          .catch(reject);
-      }
-    });
-  }
+      documentsAfterRequest.push(doc);
+    }
 
-  requestOnField () {
-    this.methodAddons
+    return documentsAfterRequest;
   }
 
   private reject(message: string | Error): Promise<void> {
