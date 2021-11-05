@@ -14,15 +14,39 @@ export const isPropInObject = (propName: any, object: any): any => {
   return false;
 }
 
+function constructor(originalCtor: Function) {
+  Object
+    // get the name of all the properties of the original constructor
+    .getOwnPropertyNames(originalCtor.prototype)
+    // filter to only get constructors
+    .filter(name => /constructor_[0-9]+/.test(name))
+    .forEach(methodName => {
+      const property = originalCtor.prototype[methodName];
+
+      // verify that the property is a function, then call it if it is
+      if (typeof property === 'function') {
+        (property as Function).apply(originalCtor.prototype, [])
+      }
+    });
+}
+
 export function Mixin(baseCtors: Function[]) {
-   return function (derivedCtor: Function) {
-     baseCtors.forEach(baseCtor => {
-       Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-        Object.defineProperty(derivedCtor.prototype, name, Object.getOwnPropertyDescriptor(baseCtor.prototype, name) as any);
+  return function (derivedCtor: Function) {
+    baseCtors.forEach((baseCtor, i) => {
+      Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
+        let newName = name;
+
+        // if the current property is a constructor we want to conserve it but
+        // with a different name so it can be defined
+        if (name === 'constructor') {
+          newName = 'constructor_' + i;
+        }
+
+        Object.defineProperty(derivedCtor.prototype, newName, Object.getOwnPropertyDescriptor(baseCtor.prototype, name) as any);
       });
-         /*Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-            derivedCtor.prototype[name] = baseCtor.prototype[name];
-         });*/
-      });
-   };
+    });
+
+    // define a function in the derived constructor that will call all the other constructors
+    Object.defineProperty(derivedCtor.prototype, 'constructorCaller', Object.getOwnPropertyDescriptor(constructor.prototype, 'constructor') as any);
+  };
 }

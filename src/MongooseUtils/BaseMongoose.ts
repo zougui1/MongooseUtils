@@ -15,11 +15,10 @@ export class BaseMongoose implements IBaseMongoose {
     'sparse', 'lowercase','uppercase', 'trim', 'match', 'enum', 'minlength', 'maxlength', 'min', 'max'
   ];
 
-  models = {};
-
   //TODO: pass the output paths into the options (errorPath, systemPath)
   //TODO: set  errorLogger as true by default
   constructor() {
+    this.configurator();
   }
 
   /**
@@ -44,10 +43,12 @@ export class BaseMongoose implements IBaseMongoose {
    * @public
    */
   connect (mongoURI: string): Promise<typeof mongoose> {
-    if (_.isString(mongoURI)) return this.connectString(mongoURI);
-    else return new Promise((resolve, reject) => {
-      reject(new Error(`MongooseUtils, first param of "connect" must be of type "string" or "object", instead received "${typeof mongoURI}"`));
-    });
+    if (_.isString(mongoURI)) {
+      return this.connectString(mongoURI);
+    }
+    else {
+      throw new Error(`MongooseUtils, first param of "connect" must be of type "string" or "object", instead received "${typeof mongoURI}"`);
+    }
   }
 
   /**

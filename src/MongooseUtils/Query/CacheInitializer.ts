@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import redis from 'redis';
 import { promisify } from 'util';
 import * as utils from '../../utils';
+import { Debugs } from '../Debugs';
 
 export class CacheInitializer {
 
@@ -17,8 +18,8 @@ export class CacheInitializer {
       this.client.get = promisify(this.client.get);
       this.modifyMongoosePrototypes();
     } catch (error) {
-      utils.consoles.error('redis: an error occured', error);
-      utils.consoles.info('make sure redis-server is in use => D:\\programs\\Redis\\redis-server.exe');
+      Debugs.error('redis: an error occured', error);
+      Debugs.info('make sure redis-server is in use => D:\\programs\\Redis\\redis-server.exe');
     }
   }
 

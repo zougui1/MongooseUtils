@@ -4,6 +4,7 @@ import { IndexableDocument } from '../Query/Requests.types';
 import { Models } from '../Model.types';
 import { RequestsProxyHandler } from './RequestsProxyHandler/index';
 import { RequestsObject } from './index.types';
+import { Options } from '../index.types';
 
 export class Requests {
 
@@ -11,6 +12,9 @@ export class Requests {
 
   // property from `Model`
   models: Models = {};
+
+  // property from MongooseUtils
+  options: Options = new Options();
 
   constructor() {
     this.createRequests();
@@ -21,7 +25,7 @@ export class Requests {
    * @protected
    */
   protected createRequests() {
-    this.requests = new Proxy({}, new RequestsProxyHandler(this.requests, this.models));
+    this.requests = new Proxy({}, new RequestsProxyHandler(this.requests, this.models, this.options));
   }
 
   /**

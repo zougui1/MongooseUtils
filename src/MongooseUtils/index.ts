@@ -39,6 +39,12 @@ export class MongooseUtils {
     'sparse', 'lowercase','uppercase', 'trim', 'match', 'enum', 'minlength', 'maxlength', 'min', 'max'
   ];
 
+  // properties from BaseQuery
+  lastConcernedProp: any;
+  query = {};
+  queryOperators = ['eq', 'gt', 'gte', 'in', 'lt', 'lte', 'ne', 'nin', 'and', 'not', 'nor', 'or', 'exists', 'mod',
+    'regex', 'near', 'nearSphere', 'all', 'elemMatch', 'size', 'comment', 'slice'];
+
   constructor(options = new Options()) {
     this.options = options;
 
@@ -48,11 +54,26 @@ export class MongooseUtils {
     this.createRequests();
     // method from `BaseMongoose`
     this.configurator();
+    /*const constructors = Object
+      .getOwnPropertyNames(MongooseUtils.prototype)
+      .filter(name => /constructor_[0-9]+/.test(name))
+      .forEach(methodName => {
+        const field = this[methodName];
+        if (typeof field === 'function') {
+          (field as Function).apply(this, options)
+        }
+      });*/
+    this.constructorCaller(MongooseUtils);
   }
 }
 
-export interface MongooseUtils extends Model, BaseMongoose, Requests, Document, Query, CacheInitializer {
+// console.log(Object.getOwnPropertySymbols(MongooseUtils.prototype))
+/*
+console.log(Object.getOwnPropertyNames(Query.prototype));
+console.log(Object.getOwnPropertyNames(MongooseUtils.prototype));*/
 
+export interface MongooseUtils extends Model, BaseMongoose, Requests, Document, Query, CacheInitializer {
+  [indexer: string]: any;
 }
 
 // every mixins between the first argument and the last one are inherited by the last one, which is itself inherited by the first argument

@@ -1,6 +1,10 @@
 import { ConnectionOptions } from 'mongoose';
 import { IHash } from '../@types';
 
+interface QueriesOptions {
+  maxLimit: number;
+}
+
 export class Options {
   Promise?: PromiseConstructor = Promise;
 
@@ -12,5 +16,9 @@ export class Options {
 
   connectOptions: ConnectionOptions = {
     useNewUrlParser: true
+  };
+
+  queries: QueriesOptions = {
+    maxLimit: 200
   };
 }
